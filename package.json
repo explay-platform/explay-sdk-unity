@@ -1,0 +1,32 @@
+{
+  "name": "com.explay.explaysdk",
+  "version": "1.0.0",
+  "displayName": "explay SDK",
+  "description": "Official Unity SDK for the explay game platform. Build and publish WebGL games with user accounts, cloud save data, and more.",
+  "unity": "2020.3",
+  "keywords": [
+    "explay",
+    "webgl",
+    "cloud save",
+    "user data",
+    "multiplayer",
+    "game platform"
+  ],
+  "author": {
+    "name": "explay",
+    "url": "https://explay.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/explay-platform/explay-sdk-unity.git"
+  },
+  "license": "MIT",
+  "dependencies": {},
+  "samples": [
+    {
+      "displayName": "SDK Demo",
+      "description": "Interactive demo showing SDK features",
+      "path": "Samples~/Demo"
+    }
+  ]
+}

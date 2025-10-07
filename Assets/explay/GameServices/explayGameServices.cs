@@ -3,27 +3,35 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
+#if UNITY_EDITOR
+using explay.GameServices.Editor;
+#endif
 
-namespace Explay
-{
-    /// <summary>
-    /// Explay SDK for Unity WebGL games
-    /// Provides communication with the Explay platform for data storage, user info, etc.
-    /// </summary>
-    public class ExplaySDK : MonoBehaviour
+namespace explay.GameServices
+{ 
+    public static class Logger
     {
-        private static ExplaySDK _instance;
+        static string format(string input) => "[EXPLAY SDK] " + input;
+
+        public static void log(string message) => Debug.Log(format(message));
+        public static void warn(string message) => Debug.LogWarning(format(message));
+        public static void error(string message) => Debug.LogError(format(message));
+    }
+
+    public class explayGameServices : MonoBehaviour
+    {
+        private static explayGameServices _instance;
         private int _requestId = 0;
         private Dictionary<int, Action<string>> _pendingRequests = new Dictionary<int, Action<string>>();
 
-        public static ExplaySDK Instance
+        public static explayGameServices Instance
         {
             get
             {
                 if (_instance == null)
                 {
-                    GameObject go = new GameObject("ExplaySDK");
-                    _instance = go.AddComponent<ExplaySDK>();
+                    GameObject go = new GameObject("explayGameServices");
+                    _instance = go.AddComponent<explayGameServices>();
                     DontDestroyOnLoad(go);
                 }
                 return _instance;
@@ -40,7 +48,6 @@ namespace Explay
             _instance = this;
             DontDestroyOnLoad(gameObject);
 
-            // Notify platform that game is ready
             NotifyGameReady();
         }
 
@@ -53,14 +60,11 @@ namespace Explay
         [DllImport("__Internal")]
         private static extern void NotifyReady();
 #else
-        private static void SendMessageToParent(string type, int requestId, string payload)
-        {
-            Debug.Log($"[Explay SDK Mock] SendMessage: {type}, RequestId: {requestId}, Payload: {payload}");
-        }
+        private static void SendMessageToParent(string type, int requestId, string payload) => explayMockServer.SendMessage(type, requestId, payload);
 
         private static void NotifyReady()
         {
-            Debug.Log("[Explay SDK Mock] Game Ready");
+            Logger.log("Mock > Game Ready");
         }
 #endif
 
@@ -71,7 +75,7 @@ namespace Explay
         private void NotifyGameReady()
         {
             NotifyReady();
-            Debug.Log("[Explay SDK] Game Ready");
+            Logger.log("Game Ready");
         }
 
         /// <summary>
@@ -94,14 +98,14 @@ namespace Explay
                     }
                     else
                     {
-                        Debug.LogError($"[Explay SDK] Request failed: {response.error}");
+                        Logger.error($"Request failed: {response.error}");
                         callback?.Invoke(null);
                     }
                 }
             }
             catch (Exception e)
             {
-                Debug.LogError($"[Explay SDK] Failed to parse response: {e.Message}");
+                Logger.error($"Failed to parse response: {e.Message}");
             }
         }
 
@@ -122,7 +126,7 @@ namespace Explay
 
             if (_pendingRequests.ContainsKey(requestId))
             {
-                Debug.LogError($"[Explay SDK] Request {requestId} timed out");
+                Logger.error($"Request {requestId} timed out");
                 _pendingRequests.Remove(requestId);
             }
         }
@@ -167,14 +171,6 @@ namespace Explay
                     callback?.Invoke(null);
                 }
             });
-        }
-
-        /// <summary>
-        /// Get the current authenticated user (alias for GetUserDetails)
-        /// </summary>
-        public void GetUser(Action<User> callback)
-        {
-            GetUserDetails(callback);
         }
 
         /// <summary>
@@ -283,7 +279,7 @@ namespace Explay
                     }
                     catch (Exception e)
                     {
-                        Debug.LogError($"[Explay SDK] Failed to parse progress data: {e.Message}");
+                        Logger.error($"Failed to parse progress data: {e.Message}");
                         callback?.Invoke(null);
                     }
                 }
