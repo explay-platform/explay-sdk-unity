@@ -7,14 +7,19 @@ namespace explay.GameServices.Editor
 {
     public static class explayMockServer
     {
+        public const string MOCK_DATA_KEY = "explayMockData";
+        public const string MOCK_USER_ID_KEY = "explayMockId";
+        public const string MOCK_USERNAME_KEY = "explayMockUsername";
+        public const string MOCK_LOGGED_IN_KEY = "explayMockLoggedIn";
+        public const string MOCK_AVATAR_KEY = "explayMockAvatar";
+
         private static Dictionary<string, MockDataEntry> mockData = new Dictionary<string, MockDataEntry>();
         private static bool isUserSignedIn = true;
         private static int userId = 1;
-        private static string username = "TestUser";
-        private static string avatar = "https://placehold.co/400x400?text=TEST";
+        private static string username;
+        private static string avatar;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static void Init()
+        public static void Init()
         {
             LoadMockData();
             LoadMockUserSettings();
@@ -40,7 +45,7 @@ namespace explay.GameServices.Editor
 
         private static void LoadMockData()
         {
-            string json = UnityEditor.EditorPrefs.GetString("explayMockData", "");
+            string json = PlayerPrefs.GetString(MOCK_DATA_KEY, "");
 
             if (!string.IsNullOrEmpty(json))
             {
@@ -52,16 +57,18 @@ namespace explay.GameServices.Editor
                     {
                         mockData[entry.key] = entry;
                     }
+
+                    Logger.log($"Loaded {container.entries.Count} entries");
                 }
             }
         }
 
         private static void LoadMockUserSettings()
         {
-            isUserSignedIn = UnityEditor.EditorPrefs.GetBool("ExplayMockUserSignedIn", true);
-            userId = UnityEditor.EditorPrefs.GetInt("ExplayMockUserId", 1);
-            username = UnityEditor.EditorPrefs.GetString("ExplayMockUsername", "TestUser");
-            avatar = UnityEditor.EditorPrefs.GetString("ExplayMockAvatar", "https://via.placeholder.com/150");
+            isUserSignedIn = PlayerPrefs.GetInt(MOCK_LOGGED_IN_KEY, 1) == 1;
+            userId = PlayerPrefs.GetInt(MOCK_USER_ID_KEY, 1);
+            username = PlayerPrefs.GetString(MOCK_USERNAME_KEY, "undefined");
+            avatar = PlayerPrefs.GetString(MOCK_AVATAR_KEY, "");
         }
 
         public static void SendMessage(string type, int requestId, string payload)
@@ -172,7 +179,7 @@ namespace explay.GameServices.Editor
             }
 
             success = false;
-            error = "Key not found";
+            error = $"Key {request.key} not found";
             return null;
         }
 
@@ -269,7 +276,8 @@ namespace explay.GameServices.Editor
             var entries = new List<MockDataEntry>(mockData.Values);
             var container = new MockDataContainer { entries = entries };
             string json = JsonUtility.ToJson(container);
-            UnityEditor.EditorPrefs.SetString("ExplayMockData", json);
+            PlayerPrefs.SetString(MOCK_DATA_KEY, json);
+            PlayerPrefs.Save();
         }
 
         private static void SendResponse(int requestId, bool success, string data, string error)

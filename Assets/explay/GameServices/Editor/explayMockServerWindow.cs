@@ -14,10 +14,10 @@ namespace explay.GameServices.Editor
         private bool newIsPublic = false;
 
         // Mock User Settings
-        private bool mockUserSignedIn = true;
-        private int mockUserId = 1;
-        private string mockUsername = "TestUser";
-        private string mockAvatar = "https://via.placeholder.com/150";
+        private bool mockUserSignedIn = false;
+        private int mockUserId = 0;
+        private string mockUsername = "";
+        private string mockAvatar = "";
 
         private List<MockDataEntry> dataEntries = new List<MockDataEntry>();
 
@@ -163,6 +163,12 @@ namespace explay.GameServices.Editor
         {
             EditorGUILayout.BeginHorizontal();
 
+            if (GUILayout.Button("Reload Data"))
+            {
+                LoadMockData();
+                LoadMockUserSettings();
+            }
+
             if (GUILayout.Button("Clear All Data"))
             {
                 if (EditorUtility.DisplayDialog(
@@ -236,7 +242,9 @@ namespace explay.GameServices.Editor
 
         private void LoadMockData()
         {
-            string json = EditorPrefs.GetString("explayMockData", "");
+            string json = PlayerPrefs.GetString(explayMockServer.MOCK_DATA_KEY, "");
+
+            LoadMockUserSettings();
 
             if (!string.IsNullOrEmpty(json))
             {
@@ -253,7 +261,7 @@ namespace explay.GameServices.Editor
         {
             var container = new MockDataContainer { entries = dataEntries };
             string json = JsonUtility.ToJson(container);
-            EditorPrefs.SetString("explayMockData", json);
+            PlayerPrefs.SetString(explayMockServer.MOCK_DATA_KEY, json);
 
             // Also save to explayMockServer
             explayMockServer.UpdateMockData(dataEntries);
@@ -261,20 +269,20 @@ namespace explay.GameServices.Editor
 
         private void LoadMockUserSettings()
         {
-            mockUserSignedIn = EditorPrefs.GetBool("explayMockUserSignedIn", true);
-            mockUserId = EditorPrefs.GetInt("explayMockUserId", 1);
-            mockUsername = EditorPrefs.GetString("explayMockUsername", "TestUser");
-            mockAvatar = EditorPrefs.GetString("explayMockAvatar", "https://via.placeholder.com/150");
+            mockUserSignedIn = PlayerPrefs.GetInt(explayMockServer.MOCK_LOGGED_IN_KEY, 1) == 1;
+            mockUserId = PlayerPrefs.GetInt(explayMockServer.MOCK_USER_ID_KEY, 1);
+            mockUsername = PlayerPrefs.GetString(explayMockServer.MOCK_USERNAME_KEY, "TestUser");
+            mockAvatar = PlayerPrefs.GetString(explayMockServer.MOCK_AVATAR_KEY, "https://placehold.co/400x400?text=TEST");
 
             explayMockServer.UpdateMockUser(mockUserSignedIn, mockUserId, mockUsername, mockAvatar);
         }
 
         private void SaveMockUserSettings()
         {
-            EditorPrefs.SetBool("explayMockUserSignedIn", mockUserSignedIn);
-            EditorPrefs.SetInt("explayMockUserId", mockUserId);
-            EditorPrefs.SetString("explayMockUsername", mockUsername);
-            EditorPrefs.SetString("explayMockAvatar", mockAvatar);
+            PlayerPrefs.SetInt(explayMockServer.MOCK_LOGGED_IN_KEY, mockUserSignedIn ? 1 : 0);
+            PlayerPrefs.SetInt(explayMockServer.MOCK_USER_ID_KEY, mockUserId);
+            PlayerPrefs.SetString(explayMockServer.MOCK_USERNAME_KEY, mockUsername);
+            PlayerPrefs.SetString(explayMockServer.MOCK_AVATAR_KEY, mockAvatar);
 
             explayMockServer.UpdateMockUser(mockUserSignedIn, mockUserId, mockUsername, mockAvatar);
         }

@@ -74,6 +74,10 @@ namespace explay.GameServices
 
         private void NotifyGameReady()
         {
+#if UNITY_EDITOR
+            explayMockServer.Init();
+#endif
+
             NotifyReady();
             Logger.log("Game Ready");
         }
