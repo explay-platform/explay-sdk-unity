@@ -4,7 +4,7 @@ using explay.GameServices;
 using System;
 using TMPro;
 
-public class explaySDKDemo : MonoBehaviour
+public class ExplaySDKDemo : MonoBehaviour
 {
     [Header("Display")]
     [SerializeField] private TextMeshProUGUI displayText;

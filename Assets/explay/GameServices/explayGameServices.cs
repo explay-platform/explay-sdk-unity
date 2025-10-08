@@ -8,7 +8,7 @@ using explay.GameServices.Editor;
 #endif
 
 namespace explay.GameServices
-{ 
+{
     public static class Logger
     {
         static string format(string input) => "[EXPLAY SDK] " + input;
@@ -24,15 +24,32 @@ namespace explay.GameServices
         private int _requestId = 0;
         private Dictionary<int, Action<string>> _pendingRequests = new Dictionary<int, Action<string>>();
 
+        private static bool _isCreating = false;
+
         public static explayGameServices Instance
         {
             get
             {
+                // If static reference is null, try to find existing GameObject
                 if (_instance == null)
                 {
+                    _instance = FindObjectOfType<explayGameServices>();
+
+                    if (_instance != null)
+                    {
+                        Logger.log("Found existing explayGameServices instance via FindObjectOfType");
+                    }
+                }
+
+                if (_instance == null && !_isCreating)
+                {
+                    Logger.log($"Creating new explayGameServices instance (_instance is null: {_instance == null}, _isCreating: {_isCreating})");
+                    _isCreating = true;
                     GameObject go = new GameObject("explayGameServices");
                     _instance = go.AddComponent<explayGameServices>();
                     DontDestroyOnLoad(go);
+                    _isCreating = false;
+                    Logger.log("explayGameServices instance created");
                 }
                 return _instance;
             }
@@ -42,12 +59,14 @@ namespace explay.GameServices
         {
             if (_instance != null && _instance != this)
             {
+                Logger.warn("Duplicate explayGameServices instance detected - destroying new instance");
                 Destroy(gameObject);
                 return;
             }
             _instance = this;
             DontDestroyOnLoad(gameObject);
 
+            Logger.log("explayGameServices Awake - Instance initialized");
             NotifyGameReady();
         }
 

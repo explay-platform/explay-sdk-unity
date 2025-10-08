@@ -58,7 +58,14 @@ var ExplaySDKPlugin = {
                         var instance = self.getUnityInstance();
 
                         if (instance && instance.SendMessage) {
-                            instance.SendMessage('explayGameServices', 'OnMessageReceived', responseJson);
+                            // Small delay to ensure Unity is ready to receive messages
+                            setTimeout(function() {
+                                try {
+                                    instance.SendMessage('explayGameServices', 'OnMessageReceived', responseJson);
+                                } catch (e) {
+                                    console.error('[explay SDK] Error sending message to Unity:', e);
+                                }
+                            }, 10);
                         } else {
                             console.warn('[explay SDK] Unity instance not found');
                         }
@@ -97,6 +104,9 @@ var ExplaySDKPlugin = {
     },
 
     NotifyReady: function() {
+        // Ensure we cache the Unity instance before any messages arrive
+        var instance = ExplaySDKState.getUnityInstance();
+
         ExplaySDKState.init();
 
         window.parent.postMessage({
